@@ -1,48 +1,46 @@
-import { useRef, useState } from "react";
-import { Box, HStack } from "@chakra-ui/react";
+import { useRef, useState, useEffect } from "react";
 import { Editor } from "@monaco-editor/react";
-import LanguageSelector from "./LanguageSelector";
-import { CODE_SNIPPETS } from "../constants";
 import Output from "./Output";
 
-const CodeEditor = () => {
+export default function CodeEditor({ task, onClick }) {
   const editorRef = useRef();
-  const [value, setValue] = useState("");
-  const [language, setLanguage] = useState("javascript");
+  const [value, setValue] = useState("// Введи свой код сюда :)");
+
+  useEffect(() => {
+    setValue("// Введи свой код сюда :)");
+  }, [task]);
 
   const onMount = (editor) => {
     editorRef.current = editor;
     editor.focus();
   };
 
-  const onSelect = (language) => {
-    setLanguage(language);
-    setValue(CODE_SNIPPETS[language]);
+  const validate = () => {
+    const isCorrect = task.validation(value);
+    onClick(isCorrect);
   };
 
   return (
-    <Box>
-      <HStack spacing={4}>
-        <Box w="50%">
-          <LanguageSelector language={language} onSelect={onSelect} />
+    <>
+      <div className="task">
+        <h1>Задание {task.id}</h1>
+        <p>{task.description}</p>
+      </div>
+      <div>
+        <div>
           <Editor
-            options={{
-              minimap: {
-                enabled: false,
-              },
-            }}
-            height="75vh"
+            height="50vh"
+            width="50vw"
             theme="vs-dark"
-            language={language}
-            defaultValue={CODE_SNIPPETS[language]}
+            language="javascript"
+            defaultValue={"// Введи свой код сюда :)"}
             onMount={onMount}
             value={value}
             onChange={(value) => setValue(value)}
           />
-        </Box>
-        <Output editorRef={editorRef} language={language} />
-      </HStack>
-    </Box>
+        </div>
+        <Output validate={validate} editorRef={editorRef} task={task} />
+      </div>
+    </>
   );
-};
-export default CodeEditor;
+}
